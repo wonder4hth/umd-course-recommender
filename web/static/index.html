@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UMD 好拿分课程推荐</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --border: #e2e5ea;
+    --text: #1a1d23;
+    --muted: #6b7280;
+    --accent: #7c3aed;
+    --accent-weak: #f1e9fe;
+    --major: #2563eb;
+    --gened: #059669;
+    --other: #b45309;
+    --warn-bg: #fff7ed;
+    --warn-border: #fdba74;
+    --warn-text: #9a3412;
+    --good: #15803d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: end; }
+  .field { display: flex; flex-direction: column; }
+  input[type=number] {
+    width: 84px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+  }
+  input[type=file] { font-size: 13px; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .checkbox-row input { width: auto; }
+  .checkbox-row .hint { color: var(--muted); font-size: 12px; }
+  button.primary {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 9px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+  #status { margin-top: 14px; font-size: 13px; color: var(--muted); display: none; }
+  #status.active { display: flex; align-items: center; gap: 8px; }
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #error { display: none; background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+           padding: 12px 14px; border-radius: 8px; margin-top: 14px; font-size: 13px; white-space: pre-wrap; }
+
+  #results { display: none; }
+  .student-line { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .banner { padding: 14px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; }
+  .banner.ok { background: #f0fdf4; border: 1px solid #86efac; color: var(--good); }
+  .banner.warn { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); }
+
+  .filters {
+    display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 18px; font-size: 13px; position: sticky; top: 10px; z-index: 5;
+  }
+  .filters .group { display: flex; gap: 10px; align-items: center; }
+  .filters .group span.gl { color: var(--muted); margin-right: 2px; }
+  .filters label { display: inline-flex; align-items: center; gap: 4px; color: var(--text); margin: 0; font-size: 13px; }
+  .filters input[type=radio], .filters input[type=checkbox] { width: auto; }
+
+  .bucket { margin-bottom: 22px; }
+  .bucket-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .tier-badge {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    padding: 2px 8px; border-radius: 999px; color: white; flex-shrink: 0;
+  }
+  .tier-badge.major { background: var(--major); }
+  .tier-badge.gened { background: var(--gened); }
+  .tier-badge.other { background: var(--other); }
+  .req-label { font-weight: 600; font-size: 14px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border);
+          border-radius: 10px; overflow: hidden; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #fafafa; color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; }
+  tr:last-child td { border-bottom: none; }
+  .code { font-weight: 700; }
+  .title { color: var(--muted); font-size: 12.5px; }
+  .gpa { font-weight: 700; }
+  .gpa.no-data { color: var(--muted); font-weight: 400; font-style: italic; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #f3f4f6; color: var(--muted); }
+  .seats.open { color: var(--good); font-weight: 600; }
+  .seats.full { color: #b91c1c; }
+  .restriction-flag { color: var(--warn-text); font-size: 11.5px; margin-top: 3px; }
+  .empty-note { color: var(--muted); font-size: 12.5px; padding: 10px 2px; }
+
+  details.flagged { margin-top: 8px; }
+  details.flagged summary {
+    cursor: pointer; font-size: 12.5px; color: var(--warn-text); font-weight: 600;
+    background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 8px; padding: 6px 10px;
+  }
+  details.flagged .flagged-body { margin-top: 8px; }
+  details.flagged table { border-color: var(--warn-border); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UMD 好拿分课程推荐</h1>
+  <div class="sub">上传 uAchieve degree audit PDF，按学分范围找历史平均绩点高的课程。数据来自 umd.io（课程/选课）+ PlanetTerp（给分曲线/教授评分），不含 RateMyProfessor。</div>
+
+  <div class="card">
+    <form id="form">
+      <div class="row">
+        <div class="field" style="flex: 1 1 260px;">
+          <label for="file">Degree Audit PDF</label>
+          <input type="file" id="file" name="file" accept="application/pdf" required>
+        </div>
+        <div class="field">
+          <label for="credits_min">最少学分</label>
+          <input type="number" id="credits_min" name="credits_min" value="1" min="0" step="0.5">
+        </div>
+        <div class="field">
+          <label for="credits_max">最多学分</label>
+          <input type="number" id="credits_max" name="credits_max" value="3" min="0" step="0.5">
+        </div>
+        <div class="field">
+          <label for="top">每个需求最多显示</label>
+          <input type="number" id="top" name="top" value="5" min="1" max="20" step="1">
+        </div>
+        <div class="field">
+          <button class="primary" type="submit">分析</button>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="open_only" name="open_only">
+        <label for="open_only" style="margin:0;">只看当前有空位（open seats）的课程</label>
+        <span class="hint">— 会更慢：需要对每门候选课单独查选课情况，不只是最终推荐的那几门</span>
+      </div>
+    </form>
+    <div id="status"><span class="spinner"></span><span id="status-text">分析中...</span></div>
+    <div id="error"></div>
+  </div>
+
+  <div id="results">
+    <div class="student-line" id="student-line"></div>
+    <div id="banner"></div>
+    <div class="filters" id="filters" style="display:none;">
+      <div class="group">
+        <span class="gl">显示：</span>
+        <label><input type="radio" name="tierFilter" value="all" checked> 全部</label>
+        <label><input type="radio" name="tierFilter" value="major"> 只看专业课</label>
+        <label><input type="radio" name="tierFilter" value="not-major"> 不看专业课</label>
+      </div>
+      <div class="group">
+        <label><input type="checkbox" id="hideRestricted"> 隐藏有限制/需许可的课程</label>
+      </div>
+    </div>
+    <div id="buckets"></div>
+  </div>
+</div>
+
+<script>
+let lastData = null;
+
+const form = document.getElementById('form');
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('status-text');
+const errorEl = document.getElementById('error');
+const resultsEl = document.getElementById('results');
+const submitBtn = form.querySelector('button.primary');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+  submitBtn.disabled = true;
+  statusEl.classList.add('active');
+  statusText.textContent = '上传并解析中...';
+
+  const fd = new FormData(form);
+  fd.set('open_only', document.getElementById('open_only').checked ? 'true' : 'false');
+
+  let tick = 0;
+  const messages = ['解析 degree audit...', '查询 umd.io 课程/选课数据...', '查询 PlanetTerp 给分曲线...', '排序推荐结果...'];
+  const timer = setInterval(() => { statusText.textContent = messages[tick % messages.length] + (document.getElementById('open_only').checked ? '（已勾选open-only，会慢一些）' : ''); tick++; }, 4000);
+
+  try {
+    const resp = await fetch('/api/analyze', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      throw new Error(data.error || `HTTP ${resp.status}`);
+    }
+    lastData = data;
+    render(data);
+    resultsEl.style.display = 'block';
+  } catch (err) {
+    errorEl.textContent = '出错了：' + err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    clearInterval(timer);
+    statusEl.classList.remove('active');
+    submitBtn.disabled = false;
+  }
+});
+
+document.querySelectorAll('input[name=tierFilter]').forEach(el =>
+  el.addEventListener('change', () => lastData && renderBuckets(lastData)));
+document.getElementById('hideRestricted').addEventListener('change', () => lastData && renderBuckets(lastData));
+
+function tierLabel(t) {
+  return { major: '专业课', gened: 'GE', other: '其他' }[t] || t;
+}
+
+function fmtGpa(v) {
+  if (v === null || v === undefined) return '<span class="gpa no-data">无数据</span>';
+  return `<span class="gpa">${v.toFixed(2)}</span>`;
+}
+
+function fmtPct(v) {
+  return v === null || v === undefined ? '—' : Math.round(v * 100) + '%';
+}
+
+function seatsHtml(row) {
+  if (row.has_open_section === null || row.has_open_section === undefined || !row.sections_total) {
+    return '<span class="pill">尚未排课</span>';
+  }
+  if (row.has_open_section) {
+    return `<span class="seats open">空位 ${row.open_seats_total}</span>`;
+  }
+  return '<span class="seats full">已满</span>';
+}
+
+function courseRow(row) {
+  const instr = row.top_rated_current_instructor
+    ? `${row.top_rated_current_instructor}${row.instructor_rating ? ' (' + row.instructor_rating.toFixed(2) + '★)' : ''}`
+    : (row.current_instructors && row.current_instructors.length ? row.current_instructors.join(', ') : '暂无当前任课信息');
+  const restrictionFlag = row.restriction
+    ? `<div class="restriction-flag">⚠ ${escapeHtml(row.restriction)}</div>` : '';
+  return `<tr>
+    <td><div class="code">${row.code}</div><div class="title">${escapeHtml(row.title || '')}</div>${restrictionFlag}</td>
+    <td>${row.credits}</td>
+    <td>${fmtGpa(row.avg_gpa)}</td>
+    <td>${fmtPct(row.pct_a_range)}</td>
+    <td>${row.n_grades || 0}</td>
+    <td>${instr}</td>
+    <td>${seatsHtml(row)}</td>
+  </tr>`;
+}
+
+function tableHtml(rows) {
+  if (!rows.length) return '<div class="empty-note">没有符合条件的课程。</div>';
+  return `<table>
+    <thead><tr><th>课程</th><th>学分</th><th>平均GPA</th><th>%A-range</th><th>历史给分样本数</th><th>现任教授</th><th>选课情况</th></tr></thead>
+    <tbody>${rows.map(courseRow).join('')}</tbody>
+  </table>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(data) {
+  document.getElementById('student-line').textContent = data.student && data.student.name
+    ? `${data.student.name} — ${data.student.major || ''}` : '';
+
+  const banner = document.getElementById('banner');
+  const filters = document.getElementById('filters');
+  const bucketsEl = document.getElementById('buckets');
+
+  if (data.status === 'complete') {
+    banner.innerHTML = '<div class="banner ok">全部毕业要求已满足 — 没有针对性的推荐可生成。</div>';
+    filters.style.display = 'none';
+    bucketsEl.innerHTML = '';
+    return;
+  }
+  if (data.status === 'no_actionable_requirements' || !data.recommendations) {
+    banner.innerHTML = '<div class="banner warn">没有找到可执行的课程需求（没有明确候选课程列表、也没有识别出GenEd代码）。可能是这个专业的audit排版和已适配的格式不同。</div>';
+    filters.style.display = 'none';
+    bucketsEl.innerHTML = '';
+    return;
+  }
+  banner.innerHTML = '';
+  filters.style.display = 'flex';
+  renderBuckets(data);
+}
+
+function renderBuckets(data) {
+  const tierFilter = document.querySelector('input[name=tierFilter]:checked').value;
+  const hideRestricted = document.getElementById('hideRestricted').checked;
+  const bucketsEl = document.getElementById('buckets');
+
+  const visible = data.recommendations.filter(b => {
+    if (tierFilter === 'major') return b.tier === 'major';
+    if (tierFilter === 'not-major') return b.tier !== 'major';
+    return true;
+  });
+
+  if (!visible.length) {
+    bucketsEl.innerHTML = '<div class="empty-note">当前筛选条件下没有结果。</div>';
+    return;
+  }
+
+  bucketsEl.innerHTML = visible.map(b => {
+    const flaggedHtml = (!hideRestricted && b.restricted_or_permission && b.restricted_or_permission.length)
+      ? `<details class="flagged">
+           <summary>另有 ${b.restricted_or_permission.length} 门带限制/需许可的课程（非audit直接列出，请自行确认资格）</summary>
+           <div class="flagged-body">${tableHtml(b.restricted_or_permission)}</div>
+         </details>`
+      : '';
+    return `<div class="bucket">
+      <div class="bucket-head">
+        <span class="tier-badge ${b.tier}">${tierLabel(b.tier)}</span>
+        <span class="req-label">${escapeHtml(b.requirement)}</span>
+      </div>
+      ${tableHtml(b.recommendations)}
+      ${flaggedHtml}
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
